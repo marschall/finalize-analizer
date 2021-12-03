@@ -3,6 +3,17 @@
 #include <string.h>
 #include <stdio.h>
 
+jboolean isNative(jvmtiEnv *jvmti, jmethodID method) {
+  jboolean is_native;
+  jvmtiError err = (*jvmti)->IsMethodNative(jvmti, method, &is_native);
+  if (err == JVMTI_ERROR_NONE) {
+    return is_native;
+  } else {
+    fprintf(stderr, "IsMethodNative (JVMTI) failed with error(%d)\n", err);
+    return JNI_FALSE;
+  }
+}
+
 jint hasZeroArguments(jvmtiEnv *jvmti, jmethodID method) {
   jint argument_count;
   jvmtiError err = (*jvmti)->GetArgumentsSize(jvmti, method, &argument_count);
@@ -19,7 +30,7 @@ jint isNamedFinalize(jvmtiEnv *jvmti, jmethodID method) {
   jvmtiError err = (*jvmti)->GetMethodName(jvmti, method, &name, NULL, NULL);
   if (err == JVMTI_ERROR_NONE) {
     jint result = strcmp(name, "finalize") == 0 ? JNI_TRUE : JNI_FALSE;
-    (*jvmti)->Deallocate(jvmti, (void*)&name);
+    (*jvmti)->Deallocate(jvmti, (void*)name);
     return result;
   } else {
     fprintf(stderr, "GetMethodName (JVMTI) failed with error(%d)\n", err);
@@ -28,7 +39,7 @@ jint isNamedFinalize(jvmtiEnv *jvmti, jmethodID method) {
 }
 
 jint isFinalizer(jvmtiEnv *jvmti, jmethodID method) {
-  if (hasZeroArguments(jvmti, method) && isNamedFinalize(jvmti, method)) {
+  if (isNative(jvmti, method) == JNI_FALSE && hasZeroArguments(jvmti, method) && isNamedFinalize(jvmti, method)) {
     return JNI_TRUE;
   } else {
     return JNI_FALSE;
@@ -40,7 +51,7 @@ void printClassName(jvmtiEnv *jvmti, jclass klass) {
   jvmtiError err = (*jvmti)->GetClassSignature(jvmti, klass, &name, NULL);
   if (err == JVMTI_ERROR_NONE) {
     fprintf(stdout, "%s\n", name);
-    (*jvmti)->Deallocate(jvmti, (void*)&name);
+    (*jvmti)->Deallocate(jvmti, (void*)name);
   } else {
     fprintf(stderr, "GetClassSignature (JVMTI) failed with error(%d)\n", err);
   }
@@ -57,7 +68,10 @@ void scanKlass(jvmtiEnv *jvmti, jclass klass) {
         printClassName(jvmti, klass);
       }
     }
-    (*jvmti)->Deallocate(jvmti, (void*)&methods);
+    (*jvmti)->Deallocate(jvmti, (void*)methods);
+  } else if (err == JVMTI_ERROR_CLASS_NOT_PREPARED) {
+    printClassName(jvmti, klass);
+    // ignore for now
   } else {
     fprintf(stderr, "GetClassMethods (JVMTI) failed with error(%d)\n", err);
   }
@@ -70,12 +84,11 @@ jint findFinalizers(jvmtiEnv *jvmti, JNIEnv* env) {
   jvmtiError err = (*jvmti)->GetLoadedClasses(jvmti, &class_count, &classes);
   if (err == JVMTI_ERROR_NONE) {
     for (int i = 0; i < class_count; i++) {
-      // TODO release class
       jclass klass = classes[i];
       scanKlass(jvmti, klass);
       (*env)->DeleteLocalRef(env, klass);
     }
-    (*jvmti)->Deallocate(jvmti, (void*)&classes);
+    (*jvmti)->Deallocate(jvmti, (void*)classes);
     return JNI_OK;
   } else {
     fprintf(stderr, "GetLoadedClasses (JVMTI) failed with error(%d)\n", err);
