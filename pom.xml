@@ -58,38 +58,6 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>com.github.maven-nar</groupId>
-        <artifactId>nar-maven-plugin</artifactId>
-        <configuration>
-          <java>
-            <include>true</include>
-          </java>
-          <libraries>
-            <library>
-              <type>jni</type>
-              <linkCPP>false</linkCPP>
-            </library>
-          </libraries>
-        </configuration>
-        <executions>
-          <execution>
-            <id>nar-validate</id>
-            <goals>
-              <goal>nar-validate</goal>
-            </goals>
-            <phase>validate</phase>
-          </execution>
-          <execution>
-            <id>nar-compile</id>
-            <goals>
-              <goal>nar-javah</goal>
-              <goal>nar-compile</goal>
-            </goals>
-            <phase>compile</phase>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <release>17</release>
@@ -100,7 +68,6 @@
         <configuration>
           <links>
             <link>https://docs.oracle.com/javase/8/docs/api/</link>
-            <link>https://docs.jboss.org/hibernate/orm/5.6/javadocs/</link>
           </links>
         </configuration>
       </plugin>

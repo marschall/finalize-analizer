@@ -31,6 +31,38 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>com.github.maven-nar</groupId>
+        <artifactId>nar-maven-plugin</artifactId>
+        <configuration>
+          <java>
+            <include>true</include>
+          </java>
+          <libraries>
+            <library>
+              <type>jni</type>
+              <linkCPP>false</linkCPP>
+            </library>
+          </libraries>
+        </configuration>
+        <executions>
+          <execution>
+            <id>nar-validate</id>
+            <goals>
+              <goal>nar-validate</goal>
+            </goals>
+            <phase>validate</phase>
+          </execution>
+          <execution>
+            <id>nar-compile</id>
+            <goals>
+              <goal>nar-javah</goal>
+              <goal>nar-compile</goal>
+            </goals>
+            <phase>compile</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <forkCount>0</forkCount>
