@@ -25,7 +25,7 @@ public class Agent {
     }
     try {
       for (Class<?> clazz : instrumentation.getAllLoadedClasses()) {
-        searchForFinalizers(clazz);
+        searchForFinalizers(clazz, out);
       }
     } finally {
       if (needsClose) {
@@ -41,8 +41,8 @@ public class Agent {
     return argString.split(" ");
   }
 
-  private static void searchForFinalizers(Class<?> clazz) {
-    if (clazz == Object.class) {
+  private static void searchForFinalizers(Class<?> clazz, PrintStream out) {
+    if ((clazz == Object.class) || (clazz == Enum.class)) {
       return;
     }
     if (clazz.isArray() || clazz.isAnnotation() || clazz.isEnum() || clazz.isPrimitive() || clazz.isRecord()) {
@@ -53,7 +53,7 @@ public class Agent {
     currentThread.setContextClassLoader(clazz.getClassLoader());
     try {
       if (hasFinalizer(clazz)) {
-        System.out.println(clazz.getName());
+        out.println(clazz.getName());
       }
     } finally {
       currentThread.setContextClassLoader(previous);
