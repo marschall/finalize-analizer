@@ -8,7 +8,7 @@
   <version>1.0.0-SNAPSHOT</version>
   <inceptionYear>2021</inceptionYear>
   <url>https://github.com/marschall/finalize-analizer</url>
-  <name>finalize analizer</name>
+  <name>finalize Analizer</name>
   <description>Search for uses of finalize</description>
   <packaging>pom</packaging>
 
