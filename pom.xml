@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.github.marschall</groupId>
   <artifactId>finalize-analizer</artifactId>
   <version>1.0.0-SNAPSHOT</version>
-  <inceptionYear>2017</inceptionYear>
+  <inceptionYear>2021</inceptionYear>
   <url>https://github.com/marschall/finalize-analizer</url>
   <name>finalize analizer</name>
   <description>Search for uses of finalize</description>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>agent</module>
+    <module>maven-plugin</module>
+  </modules>
 
   <developers>
     <developer>
@@ -37,12 +44,12 @@
     <url>${project.url}</url>
     <tag>HEAD</tag>
   </scm>
-  
+
   <issueManagement>
     <system>GitHub Issues</system>
     <url>https://github.com/marschall/finalize-analizer/issues</url>
   </issueManagement>
-  
+
   <ciManagement>
     <system>Travis CI</system>
     <url>https://travis-ci.org/marschall/finalize-analizer</url>
@@ -86,43 +93,6 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
           <release>17</release>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>flatten-maven-plugin</artifactId>
-        <configuration>
-          <flattenMode>ossrh</flattenMode>
-        </configuration>
-        <executions>
-          <!-- enable flattening -->
-          <execution>
-            <id>flatten</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>flatten</goal>
-            </goals>
-          </execution>
-          <!-- ensure proper cleanup -->
-          <execution>
-            <id>flatten.clean</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>clean</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <archive>
-            <manifestEntries>
-              <Agent-Class>com.github.marschall.finalizeanalizer.Agent</Agent-Class>
-              <Can-Redefine-Classes>false</Can-Redefine-Classes>
-              <Can-Retransform-Classes>false</Can-Retransform-Classes>
-            </manifestEntries>
-          </archive>
         </configuration>
       </plugin>
       <plugin>
@@ -171,11 +141,6 @@
         <plugin>
           <artifactId>maven-deploy-plugin</artifactId>
           <version>2.8.2</version>
-        </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>flatten-maven-plugin</artifactId>
-          <version>1.2.7</version>
         </plugin>
         <plugin>
           <artifactId>maven-gpg-plugin</artifactId>
@@ -230,26 +195,13 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>4.1.0</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
-
-  <dependencies>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-params</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-engine</artifactId>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
 
   <distributionManagement>
     <snapshotRepository>
