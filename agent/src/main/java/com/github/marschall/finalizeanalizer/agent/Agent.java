@@ -45,7 +45,8 @@ public class Agent {
     if ((clazz == Object.class) || (clazz == Enum.class)) {
       return;
     }
-    if (clazz.isArray() || clazz.isAnnotation() || clazz.isEnum() || clazz.isPrimitive() || clazz.isRecord()) {
+    // maybe  clazz.isRecord()
+    if (clazz.isArray() || clazz.isAnnotation() || clazz.isEnum() || clazz.isPrimitive()) {
       return;
     }
     Thread currentThread = Thread.currentThread();

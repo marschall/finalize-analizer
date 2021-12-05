@@ -1,5 +1,6 @@
 package com.github.marschall.finalizeanalizer.plugin;
 
+import static java.util.stream.Collectors.toList;
 import static org.apache.maven.plugins.annotations.LifecyclePhase.VERIFY;
 import static org.apache.maven.plugins.annotations.ResolutionScope.RUNTIME;
 
@@ -76,7 +77,7 @@ public class AnalizeMojo extends AbstractMojo {
     }
     if (!foundFinalizers.isEmpty()) {
       for (FoundFinalizer foundFinalizer : foundFinalizers) {
-        this.getLog().warn("The dependency: " + foundFinalizer.dependency() + " has a finalizer in the calss: " + foundFinalizer.classFile());
+        this.getLog().warn("The dependency: " + foundFinalizer.getDependency() + " has a finalizer in the calss: " + foundFinalizer.getClassFile());
       }
 
       MojoFailureException exception = new MojoFailureException("classes with finalizers dependencies detected");
@@ -92,7 +93,7 @@ public class AnalizeMojo extends AbstractMojo {
       //formatter:off
       return filesWithFinalizers.stream()
                                 .map(fileName -> new FoundFinalizer(dependency, fileName))
-                                .toList();
+                                .collect(toList());
       //formatter:on
     } else {
       return List.of();
@@ -152,7 +153,23 @@ public class AnalizeMojo extends AbstractMojo {
     return request;
   }
 
-  static record FoundFinalizer(Dependency dependency, String classFile) {
+  static final class FoundFinalizer {
+
+    private final Dependency dependency;
+    private final String classFile;
+
+    FoundFinalizer(Dependency dependency, String classFile) {
+      this.dependency = dependency;
+      this.classFile = classFile;
+    }
+
+    Dependency getDependency() {
+      return this.dependency;
+    }
+
+    String getClassFile() {
+      return this.classFile;
+    }
 
   }
 
