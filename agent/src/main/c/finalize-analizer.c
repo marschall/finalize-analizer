@@ -10,7 +10,7 @@ static void printJvmtiError(jvmtiEnv *jvmti, jvmtiError error, char *message) {
     (*jvmti)->Deallocate(jvmti, (void*)name);
     fprintf(stderr, "ERROR: JVMTI: %s failed with error(%d): %s\n", message, error, name);
   } else {
-    fprintf(stderr, "ERROR: JVMTI: %s failed with error(%d): %s\n", message, error);
+    fprintf(stderr, "ERROR: JVMTI: %s failed with error(%d)\n", message, error);
   }
 }
 
@@ -20,7 +20,7 @@ jboolean isNative(jvmtiEnv *jvmti, jmethodID method) {
   if (err == JVMTI_ERROR_NONE) {
     return is_native;
   } else {
-    printJvmtiError("IsMethodNative", err);
+    printJvmtiError(jvmti, err, "IsMethodNative");
     return JNI_FALSE;
   }
 }
@@ -31,7 +31,7 @@ jint hasZeroArguments(jvmtiEnv *jvmti, jmethodID method) {
   if (err == JVMTI_ERROR_NONE) {
     return argument_count == 0 ? JNI_TRUE : JNI_FALSE;
   } else {
-    printJvmtiError("GetArgumentsSize", err);
+    printJvmtiError(jvmti, err, "GetArgumentsSize");
     return JNI_FALSE;
   }
 }
@@ -44,7 +44,7 @@ jint isNamedFinalize(jvmtiEnv *jvmti, jmethodID method) {
     (*jvmti)->Deallocate(jvmti, (void*)name);
     return result;
   } else {
-    printJvmtiError("GetMethodName", err);
+    printJvmtiError(jvmti, err, "GetMethodName");
     return JNI_FALSE;
   }
 }
@@ -64,7 +64,7 @@ void printClassName(jvmtiEnv *jvmti, jclass klass) {
     fprintf(stdout, "%s\n", name);
     (*jvmti)->Deallocate(jvmti, (void*)name);
   } else {
-    printJvmtiError("GetClassSignature", err);
+    printJvmtiError(jvmti, err, "GetClassSignature");
   }
 }
 
@@ -75,7 +75,7 @@ void printClassNameNotPrepared(jvmtiEnv *jvmti, jclass klass) {
     fprintf(stdout, "not prepared %s\n", name);
     (*jvmti)->Deallocate(jvmti, (void*)name);
   } else {
-    printJvmtiError("GetClassSignature", err);
+    printJvmtiError(jvmti, err, "GetClassSignature");
   }
 }
 
@@ -86,7 +86,7 @@ void printClassNamePrepared(jvmtiEnv *jvmti, jclass klass) {
     fprintf(stdout, "prepared %s\n", name);
     (*jvmti)->Deallocate(jvmti, (void*)name);
   } else {
-    printJvmtiError("GetClassSignature", err);
+    printJvmtiError(jvmti, err, "GetClassSignature");
   }
 }
 
@@ -107,7 +107,7 @@ void scanKlass(jvmtiEnv *jvmti, jclass klass) {
     printClassNameNotPrepared(jvmti, klass);
     // ignore for now
   } else {
-    printJvmtiError("GetClassMethods", err);
+    printJvmtiError(jvmti, err, "GetClassMethods");
   }
 }
 
@@ -125,7 +125,7 @@ jint findFinalizers(jvmtiEnv *jvmti, JNIEnv* env) {
     (*jvmti)->Deallocate(jvmti, (void*)classes);
     return JNI_OK;
   } else {
-    printJvmtiError("GetLoadedClasses", err);
+    printJvmtiError(jvmti, err, "GetLoadedClasses");
     return err;
   }
 }
