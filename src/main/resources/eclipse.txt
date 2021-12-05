@@ -1,0 +1,15 @@
+org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream
+org.apache.commons.compress.archivers.zip.ZipFile
+org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream
+org.apache.commons.compress.archivers.zip.ZipFile
+org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream
+org.eclipse.wst.validation.internal.PreferencesWrapper$WrapperManger
+jdk.internal.jrtfs.JrtFileSystem
+org.eclipse.swt.graphics.Resource$ResourceTracker
+com.ibm.icu.impl.coll.SharedObject$Reference
+jdk.nio.zipfs.ZipFileSystem
+java.awt.PrintJob
+java.awt.image.ColorModel
+java.awt.Graphics
+java.util.concurrent.Executors$FinalizableDelegatedExecutorService
+java.util.concurrent.ThreadPoolExecutor

@@ -1,0 +1,10 @@
+org.openjdk.jmc.rjmx.internal.DefaultConnectionHandle
+org.openjdk.jmc.rjmx.internal.ServerHandle
+sun.java2d.SunGraphics2D
+java.awt.Graphics
+java.awt.image.IndexColorModel
+java.awt.color.ICC_Profile
+java.awt.image.ColorModel
+java.util.concurrent.Executors$FinalizableDelegatedExecutorService
+java.util.concurrent.ThreadPoolExecutor
+jdk.jfr.internal.RepositoryChunk
