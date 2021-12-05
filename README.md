@@ -3,13 +3,14 @@
 Running the Java Agent
 ----------------------
 
-jcmd <pid> JVMTI.agent_load $(pwd)/target/finalize-analizer-1.0.0-SNAPSHOT.jar
+jcmd <pid> JVMTI.agent_load $(pwd)/agent/target/finalize-analizer-agent-1.0.0-SNAPSHOT.jar <path>
+jcmd 3029 JVMTI.agent_load $(pwd)/agent/target/finalize-analizer-agent-1.0.0-SNAPSHOT.jar $(pwd)/eclipse.txt
 
 
 Running the Native Agent
 ------------------------
 
-jcmd <pid> JVMTI.agent_load $(pwd)/target/nar/finalize-analizer-1.0.0-SNAPSHOT-amd64-Linux-gpp-jni/lib/amd64-Linux-gpp/jni/libfinalize-analizer-1.0.0-SNAPSHOT.so
-jcmd 19195 JVMTI.agent_load $(pwd)/target/nar/finalize-analizer-1.0.0-SNAPSHOT-amd64-Linux-gpp-jni/lib/amd64-Linux-gpp/jni/libfinalize-analizer-1.0.0-SNAPSHOT.so
+jcmd <pid> JVMTI.agent_load $(pwd)/agent/target/nar/finalize-analizer-agent-1.0.0-SNAPSHOT-amd64-Linux-gpp-jni/lib/amd64-Linux-gpp/jni/libfinalize-analizer-agent-1.0.0-SNAPSHOT.so
+jcmd 21593 JVMTI.agent_load $(pwd)/agent/target/nar/finalize-analizer-agent-1.0.0-SNAPSHOT-amd64-Linux-gpp-jni/lib/amd64-Linux-gpp/jni/libfinalize-analizer-agent-1.0.0-SNAPSHOT.so
 
 UBUNTU core dump location /var/lib/apport/coredump/
