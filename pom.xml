@@ -4,7 +4,7 @@
 
   <groupId>com.github.marschall</groupId>
   <artifactId>finalize-analizer</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1-SNAPSHOT</version>
   <inceptionYear>2021</inceptionYear>
   <url>https://github.com/marschall/finalize-analizer</url>
   <name>finalize Analizer</name>
@@ -41,7 +41,7 @@
     <connection>scm:git:git@github.com:marschall/finalize-analizer.git</connection>
     <developerConnection>scm:git:git@github.com:marschall/finalize-analizer.git</developerConnection>
     <url>${project.url}</url>
-    <tag>1.0.0</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
