@@ -79,21 +79,9 @@ void printClassNameNotPrepared(jvmtiEnv *jvmti, jclass klass) {
   }
 }
 
-void printClassNamePrepared(jvmtiEnv *jvmti, jclass klass) {
-  char* name;
-  jvmtiError err = (*jvmti)->GetClassSignature(jvmti, klass, &name, NULL);
-  if (err == JVMTI_ERROR_NONE) {
-    fprintf(stdout, "prepared %s\n", name);
-    (*jvmti)->Deallocate(jvmti, (void*)name);
-  } else {
-    printJvmtiError(jvmti, err, "GetClassSignature");
-  }
-}
-
 void scanKlass(jvmtiEnv *jvmti, jclass klass) {
   jint method_count;
   jmethodID* methods;
-  // (*jvmti)->GetClassSignature(jvmti, klass, NULL, NULL);
   jvmtiError err = (*jvmti)->GetClassMethods(jvmti, klass, &method_count, &methods);
   if (err == JVMTI_ERROR_NONE) {
     for (int i = 0; i < method_count; i++) {
@@ -104,8 +92,7 @@ void scanKlass(jvmtiEnv *jvmti, jclass klass) {
     }
     (*jvmti)->Deallocate(jvmti, (void*)methods);
   } else if (err == JVMTI_ERROR_CLASS_NOT_PREPARED) {
-    printClassNameNotPrepared(jvmti, klass);
-    // ignore for now
+    // ignore, not prepared means not initialized meand no instande
   } else {
     printJvmtiError(jvmti, err, "GetClassMethods");
   }
@@ -130,17 +117,11 @@ jint findFinalizers(jvmtiEnv *jvmti, JNIEnv* env) {
   }
 }
 
-void JNICALL callbackClassPrepare(jvmtiEnv *jvmti, JNIEnv* env, jthread thread, jclass klass) {
-  printClassNamePrepared(jvmti, klass);
-}
-
 
 JNIEXPORT jint JNICALL Agent_OnAttach(JavaVM* jvm, char *options, void *reserved) {
 
   jvmtiEnv *jvmti;
   JNIEnv* env;
-  jvmtiEventCallbacks callbacks;
-  (void)memset(&callbacks, 0, sizeof(callbacks));
 
   jint niErr = (*jvm)->GetEnv(jvm, (void**)&env, JNI_VERSION_10);
   if (niErr != JNI_OK) {
@@ -150,13 +131,9 @@ JNIEXPORT jint JNICALL Agent_OnAttach(JavaVM* jvm, char *options, void *reserved
 
   jint tiErr = (*jvm)->GetEnv(jvm, (void**) &jvmti, JVMTI_VERSION_11);
   if (tiErr == JNI_OK) {
-    callbacks.ClassPrepare = &callbackClassPrepare;
-  
-    (*jvmti)->SetEventCallbacks(jvmti, &callbacks, (jint) sizeof(callbacks));
-    (*jvmti)->SetEventNotificationMode(jvmti, JVMTI_ENABLE, JVMTI_EVENT_CLASS_PREPARE, (jthread) NULL);
-    //(*jvmti)->GenerateEvents(jvmti, (void*)classes);
+
     jint result = findFinalizers(jvmti, env);
-    //(*jvmti)->DisposeEnvironment(jvmti);
+    (*jvmti)->DisposeEnvironment(jvmti);
     // does JNIEnv need to be disposed?
     return result;
   } else {
