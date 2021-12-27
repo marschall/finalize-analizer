@@ -23,7 +23,7 @@
         <version>${it-plugin.version}</version>
         <executions>
           <execution>
-            <phase>verify</phase>
+            <id>find-finalizers</id>
             <goals>
               <goal>analize</goal>
             </goals>
