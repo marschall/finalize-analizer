@@ -1,5 +1,6 @@
 #include <jni.h>
 #include <jvmti.h>
+#include <classfile_constants.h>
 #include <string.h>
 #include <stdio.h>
 
@@ -15,33 +16,44 @@ static void printJvmtiError(jvmtiEnv *jvmti, jvmtiError error, char *message) {
 }
 
 jboolean isNative(jvmtiEnv *jvmti, jmethodID method) {
-  jboolean is_native;
-  jvmtiError err = (*jvmti)->IsMethodNative(jvmti, method, &is_native);
+  jboolean isNative;
+  jvmtiError err = (*jvmti)->IsMethodNative(jvmti, method, &isNative);
   if (err == JVMTI_ERROR_NONE) {
-    return is_native;
+    return isNative;
   } else {
     printJvmtiError(jvmti, err, "IsMethodNative");
     return JNI_FALSE;
   }
 }
 
-jint hasZeroArguments(jvmtiEnv *jvmti, jmethodID method) {
-  jint argument_count;
-  jvmtiError err = (*jvmti)->GetArgumentsSize(jvmti, method, &argument_count);
+jboolean isStatic(jvmtiEnv *jvmti, jmethodID method) {
+  jint modifiers;
+  jvmtiError err = (*jvmti)->GetMethodModifiers(jvmti, method, &modifiers);
   if (err == JVMTI_ERROR_NONE) {
-    return argument_count == 0 ? JNI_TRUE : JNI_FALSE;
+    return (modifiers & JVM_ACC_STATIC) ? JNI_TRUE : JNI_FALSE;
   } else {
-    printJvmtiError(jvmti, err, "GetArgumentsSize");
+    printJvmtiError(jvmti, err, "GetMethodModifiers");
     return JNI_FALSE;
   }
 }
 
-jint isNamedFinalize(jvmtiEnv *jvmti, jmethodID method) {
-  char* name;
-  jvmtiError err = (*jvmti)->GetMethodName(jvmti, method, &name, NULL, NULL);
+jint getArgumentCount(jvmtiEnv *jvmti, jmethodID method) {
+  jint argumentCount;
+  jvmtiError err = (*jvmti)->GetArgumentsSize(jvmti, method, &argumentCount);
   if (err == JVMTI_ERROR_NONE) {
-    jint result = strcmp(name, "finalize") == 0 ? JNI_TRUE : JNI_FALSE;
-    (*jvmti)->Deallocate(jvmti, (void*)name);
+    return argumentCount;
+  } else {
+    printJvmtiError(jvmti, err, "GetArgumentsSize");
+    return -1;
+  }
+}
+
+jboolean isNamedFinalize(jvmtiEnv *jvmti, jmethodID method) {
+  char* methodName;
+  jvmtiError err = (*jvmti)->GetMethodName(jvmti, method, &methodName, NULL, NULL);
+  if (err == JVMTI_ERROR_NONE) {
+    jboolean result = strcmp(methodName, "finalize") == 0 ? JNI_TRUE : JNI_FALSE;
+    (*jvmti)->Deallocate(jvmti, (void*)methodName);
     return result;
   } else {
     printJvmtiError(jvmti, err, "GetMethodName");
@@ -50,7 +62,11 @@ jint isNamedFinalize(jvmtiEnv *jvmti, jmethodID method) {
 }
 
 jint isFinalizer(jvmtiEnv *jvmti, jmethodID method) {
-  if (isNative(jvmti, method) == JNI_FALSE && hasZeroArguments(jvmti, method) && isNamedFinalize(jvmti, method)) {
+  if (isNative(jvmti, method) == JNI_FALSE
+      && isStatic(jvmti, method) == JNI_FALSE
+      // "this" reference is first argument
+      && getArgumentCount(jvmti, method) == 1
+      && isNamedFinalize(jvmti, method)) {
     return JNI_TRUE;
   } else {
     return JNI_FALSE;
@@ -58,33 +74,22 @@ jint isFinalizer(jvmtiEnv *jvmti, jmethodID method) {
 }
 
 void printClassName(jvmtiEnv *jvmti, jclass klass) {
-  char* name;
-  jvmtiError err = (*jvmti)->GetClassSignature(jvmti, klass, &name, NULL);
+  char* className;
+  jvmtiError err = (*jvmti)->GetClassSignature(jvmti, klass, &className, NULL);
   if (err == JVMTI_ERROR_NONE) {
-    fprintf(stdout, "%s\n", name);
-    (*jvmti)->Deallocate(jvmti, (void*)name);
-  } else {
-    printJvmtiError(jvmti, err, "GetClassSignature");
-  }
-}
-
-void printClassNameNotPrepared(jvmtiEnv *jvmti, jclass klass) {
-  char* name;
-  jvmtiError err = (*jvmti)->GetClassSignature(jvmti, klass, &name, NULL);
-  if (err == JVMTI_ERROR_NONE) {
-    fprintf(stdout, "not prepared %s\n", name);
-    (*jvmti)->Deallocate(jvmti, (void*)name);
+    fprintf(stdout, "%s\n", className);
+    (*jvmti)->Deallocate(jvmti, (void*)className);
   } else {
     printJvmtiError(jvmti, err, "GetClassSignature");
   }
 }
 
 void scanKlass(jvmtiEnv *jvmti, jclass klass) {
-  jint method_count;
+  jint methodCount;
   jmethodID* methods;
-  jvmtiError err = (*jvmti)->GetClassMethods(jvmti, klass, &method_count, &methods);
+  jvmtiError err = (*jvmti)->GetClassMethods(jvmti, klass, &methodCount, &methods);
   if (err == JVMTI_ERROR_NONE) {
-    for (int i = 0; i < method_count; i++) {
+    for (int i = 0; i < methodCount; i++) {
       jmethodID method = methods[i];
       if (isFinalizer(jvmti, method)) {
         printClassName(jvmti, klass);
@@ -92,19 +97,19 @@ void scanKlass(jvmtiEnv *jvmti, jclass klass) {
     }
     (*jvmti)->Deallocate(jvmti, (void*)methods);
   } else if (err == JVMTI_ERROR_CLASS_NOT_PREPARED) {
-    // ignore, not prepared means not initialized meand no instande
+    // ignore, not prepared means not initialized means no instantiated
   } else {
     printJvmtiError(jvmti, err, "GetClassMethods");
   }
 }
 
 jint findFinalizers(jvmtiEnv *jvmti, JNIEnv* env) {
-  jint class_count;
+  jint classCount;
   jclass* classes;
 
-  jvmtiError err = (*jvmti)->GetLoadedClasses(jvmti, &class_count, &classes);
+  jvmtiError err = (*jvmti)->GetLoadedClasses(jvmti, &classCount, &classes);
   if (err == JVMTI_ERROR_NONE) {
-    for (int i = 0; i < class_count; i++) {
+    for (int i = 0; i < classCount; i++) {
       jclass klass = classes[i];
       scanKlass(jvmti, klass);
       (*env)->DeleteLocalRef(env, klass);
@@ -116,7 +121,6 @@ jint findFinalizers(jvmtiEnv *jvmti, JNIEnv* env) {
     return err;
   }
 }
-
 
 JNIEXPORT jint JNICALL Agent_OnAttach(JavaVM* jvm, char *options, void *reserved) {
 
@@ -141,3 +145,4 @@ JNIEXPORT jint JNICALL Agent_OnAttach(JavaVM* jvm, char *options, void *reserved
     return JNI_ERR;
   }
 }
+
