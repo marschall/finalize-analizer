@@ -148,7 +148,7 @@ jint findFinalizers(jvmtiEnv *jvmti, JNIEnv* env) {
     return JNI_OK;
   } else {
     printJvmtiError(jvmti, err, "GetLoadedClasses");
-    return err;
+    return JNI_ERR;
   }
 }
 
