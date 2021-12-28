@@ -84,11 +84,28 @@ jboolean isInitialized(jvmtiEnv *jvmti, jclass klass) {
   }
 }
 
+void replaceChar(char *str, char original, char replacement) {
+  char *i = str;
+  while ((i = strchr(i, original)) != NULL) {
+    *i++ = replacement;
+  }
+}
+
+char* toJavaName(char *jniName) {
+  // Lcom/ibm/icu/impl/coll/SharedObject$Reference; -> com.ibm.icu.impl.coll.SharedObject$Reference
+  replaceChar(jniName, '/', '.');
+  size_t len = strlen(jniName);
+  jniName[len - 1] = '\0';
+  return &jniName[1];
+}
+
 void printClassName(jvmtiEnv *jvmti, jclass klass) {
   char* className;
+  char* javaName;
   jvmtiError err = (*jvmti)->GetClassSignature(jvmti, klass, &className, NULL);
   if (err == JVMTI_ERROR_NONE) {
-    fprintf(stdout, "%s\n", className);
+    javaName = toJavaName(className);
+    fprintf(stdout, "%s\n", javaName);
     (*jvmti)->Deallocate(jvmti, (void*)className);
   } else {
     printJvmtiError(jvmti, err, "GetClassSignature");
