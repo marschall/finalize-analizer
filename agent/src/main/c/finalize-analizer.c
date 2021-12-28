@@ -73,6 +73,17 @@ jint isFinalizer(jvmtiEnv *jvmti, jmethodID method) {
   }
 }
 
+jboolean isInitialized(jvmtiEnv *jvmti, jclass klass) {
+  jint status;
+  jvmtiError err = (*jvmti)->GetClassStatus(jvmti, klass, &status);
+  if (err == JVMTI_ERROR_NONE) {
+    return (status & JVMTI_CLASS_STATUS_INITIALIZED) != 0 ? JNI_TRUE : JNI_FALSE;
+  } else {
+    printJvmtiError(jvmti, err, "GetClassStatus");
+    return JNI_FALSE;
+  }
+}
+
 void printClassName(jvmtiEnv *jvmti, jclass klass) {
   char* className;
   jvmtiError err = (*jvmti)->GetClassSignature(jvmti, klass, &className, NULL);
@@ -111,7 +122,9 @@ jint findFinalizers(jvmtiEnv *jvmti, JNIEnv* env) {
   if (err == JVMTI_ERROR_NONE) {
     for (int i = 0; i < classCount; i++) {
       jclass klass = classes[i];
-      scanKlass(jvmti, klass);
+      if (isInitialized(jvmti, klass) == JNI_TRUE) {
+        scanKlass(jvmti, klass);
+      }
       (*env)->DeleteLocalRef(env, klass);
     }
     (*jvmti)->Deallocate(jvmti, (void*)classes);
