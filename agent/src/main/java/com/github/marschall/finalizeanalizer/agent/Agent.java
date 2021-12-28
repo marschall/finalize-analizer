@@ -25,10 +25,11 @@ public class Agent {
     }
     try {
       for (Class<?> clazz : instrumentation.getAllLoadedClasses()) {
-        searchForFinalizers(clazz, out);
+        hasFinalizer(clazz, out);
       }
     } finally {
       if (needsClose) {
+        // we don't want to close System.out
         out.close();
       }
     }
@@ -41,19 +42,31 @@ public class Agent {
     return argString.split(" ");
   }
 
-  private static void searchForFinalizers(Class<?> clazz, PrintStream out) {
+  private static boolean shouldSkip(Class<?> clazz) {
     if ((clazz == Object.class) || (clazz == Enum.class)) {
-      return;
+      return true;
     }
     // maybe  clazz.isRecord()
     if (clazz.isArray() || clazz.isAnnotation() || clazz.isEnum() || clazz.isPrimitive()) {
+      return true;
+    }
+    String className = clazz.getName();
+    if (className.startsWith("java.") || className.startsWith("jdk.")) {
+      return true;
+    }
+    return false;
+  }
+
+  private static void hasFinalizer(Class<?> clazz, PrintStream out) {
+    if (shouldSkip(clazz)) {
       return;
     }
     Thread currentThread = Thread.currentThread();
     ClassLoader previous = currentThread.getContextClassLoader();
+    // hopefully with the TCCL set all types referenced by method signatures can be loaded
     currentThread.setContextClassLoader(clazz.getClassLoader());
     try {
-      if (hasFinalizer(clazz)) {
+      if (hasFinalizerMethod(clazz)) {
         out.println(clazz.getName());
       }
     } finally {
@@ -61,7 +74,7 @@ public class Agent {
     }
   }
 
-  private static boolean hasFinalizer(Class<?> clazz) {
+  private static boolean hasFinalizerMethod(Class<?> clazz) {
     try {
       // no need to check superclass as it is loaded as well
       clazz.getDeclaredMethod("finalize");
