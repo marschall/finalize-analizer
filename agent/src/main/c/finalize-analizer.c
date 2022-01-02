@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdio.h>
 
-static void printJvmtiError(jvmtiEnv *jvmti, jvmtiError error, char *message) {
+void printJvmtiError(jvmtiEnv *jvmti, jvmtiError error, char *message) {
   char *name;
   jvmtiError err = (*jvmti)->GetErrorName(jvmti, error, &name);
   if (err != JVMTI_ERROR_NONE) {
